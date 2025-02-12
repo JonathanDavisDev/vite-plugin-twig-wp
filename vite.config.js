@@ -16,7 +16,7 @@ export default defineConfig({
           "tests/fixtures/drupal-functions.twig"
         ),
       },
-      name: "vite-plugin-twig-drupal",
+      name: "vite-plugin-twig-wp",
       fileName: (_, entry) => `${entry}.js`,
     },
   },

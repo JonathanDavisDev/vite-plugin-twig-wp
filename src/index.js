@@ -140,7 +140,7 @@ const errorHandler =
 const plugin = (options = {}) => {
   options = { ...defaultOptions, ...options }
   return {
-    name: "vite-plugin-twig-drupal",
+    name: "vite-plugin-twig-wp",
     config: ({ root }) => {
       if (!options.root) {
         options.root = root
@@ -158,7 +158,10 @@ const plugin = (options = {}) => {
 
         if (options.framework === FRAMEWORK_REACT && !asTwigJs) {
           frameworkInclude = `import React from 'react'`
-          frameworkTransform = `const frameworkTransform = (html) => React.createElement('div', {dangerouslySetInnerHTML: {'__html': html}});;`
+          frameworkTransform = `const frameworkTransform = (html) => React.createElement('div', {
+                                  style: { display: 'contents' },
+                                  dangerouslySetInnerHTML: { '__html': html }
+                                });`
         }
 
         if (asTwigJs) {
