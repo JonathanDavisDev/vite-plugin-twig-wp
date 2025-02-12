@@ -1,7 +1,7 @@
 {
   "name": "vite-plugin-twig-wp",
   "version": "1.0.0",
-  "description": "Provides a ⚡️ Vite plugin to transform 🌱 Twig into HTML with a 💧 Drupal flavour",
+  "description": "Provides a ⚡️ Vite plugin to transform 🌱 Twig into HTML",
   "keywords": [
     "Vite",
     "Vite plugin",

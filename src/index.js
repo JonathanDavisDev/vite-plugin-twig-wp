@@ -2,6 +2,7 @@ import Twig from "twig"
 import { join, resolve, dirname } from "node:path"
 import { existsSync, readdirSync } from "node:fs"
 import { normalizePath } from "vite"
+import nodePath from 'path';
 
 const { twig } = Twig
 
@@ -27,6 +28,7 @@ const includeTokenTypes = [
 
 const findInChildDirectories = (directory, component) => {
   const files = readdirSync(directory, { recursive: true })
+
   for (const file of files) {
     const filePath = join(directory, file)
     if (file.endsWith(`/${component}.twig`)) {
@@ -39,12 +41,13 @@ const findInChildDirectories = (directory, component) => {
 
 const resolveFile = (directory, file) => {
   const filesToTry = [file, `${file}.twig`, `${file}.html.twig`]
+
   for (const ix in filesToTry) {
-    const path = resolve(filesToTry[ix])
+    const path = resolve(nodePath.basename(filesToTry[ix]))
     if (existsSync(path)) {
       return normalizePath(path)
     }
-    const withDir = resolve(directory, filesToTry[ix])
+    const withDir = resolve(directory, nodePath.basename(filesToTry[ix]))
     if (existsSync(withDir)) {
       return normalizePath(withDir)
     }
@@ -122,20 +125,19 @@ Twig.cache(false)
 
 const errorHandler =
   (id, isDefault = true) =>
-  (e) => {
-    if (isDefault) {
+    (e) => {
+      if (isDefault) {
+        return {
+          code: `export default () => 'An error occurred whilst rendering ${id}: ${e.toString()} ${e.stack
+            }';`,
+          map: null,
+        }
+      }
       return {
-        code: `export default () => 'An error occurred whilst rendering ${id}: ${e.toString()} ${
-          e.stack
-        }';`,
+        code: null,
         map: null,
       }
     }
-    return {
-      code: null,
-      map: null,
-    }
-  }
 
 const plugin = (options = {}) => {
   options = { ...defaultOptions, ...options }
@@ -241,17 +243,14 @@ const plugin = (options = {}) => {
         } catch (e) {
           return errorHandler(id)(e)
         }
+
         const output = `
         import Twig, { twig } from 'twig';
-        import DrupalAttribute from 'drupal-attribute';
-        import { addDrupalExtensions } from 'drupal-twig-extensions/twig';
         ${frameworkInclude}
 
         ${embed}
 
         ${functions}
-
-        addDrupalExtensions(Twig);
 
         // Disable caching.
         Twig.cache(false);
@@ -260,11 +259,11 @@ const plugin = (options = {}) => {
         ${embeddedIncludes};
         ${frameworkTransform};
         export default (context = {}) => {
-          const component = ${code}
+          const component = ${code};
+
           ${includes ? `component.options.allowInlineIncludes = true;` : ""}
           try {
             return frameworkTransform(component.render({
-              attributes: new DrupalAttribute(),
               ...${JSON.stringify(options.globalContext)},
               ...context
             }));
